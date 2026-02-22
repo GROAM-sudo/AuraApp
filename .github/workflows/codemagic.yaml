@@ -1,0 +1,19 @@
+# Configuration pour l'application AURA
+workflows:
+  android-build:
+    name: Build AURA APK
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      java: 17
+    scripts:
+      - name: Set permissions
+        script: chmod +x gradlew
+      - name: Build Android APK
+        script: ./gradlew assembleDebug
+    artifacts:
+      - app/build/outputs/apk/debug/*.apk
+    publishing:
+      email:
+        recipients:
+          - TON_EMAIL_ICI@gmail.com # Optionnel : remplace par ton mail
