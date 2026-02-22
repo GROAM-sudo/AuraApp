@@ -1,0 +1,3 @@
+-keep class com.aura.app.** { *; }
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable

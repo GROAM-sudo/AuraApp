@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#050a18"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>AURA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@200;300;400;500;600&family=Space+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --ice:#a8d8ff;
+  --ice2:#c8e8ff;
+  --blue:#4a9eff;
+  --deep:#050a18;
+  --glass:rgba(255,255,255,0.07);
+  --glass-border:rgba(255,255,255,0.15);
+  --glass-strong:rgba(255,255,255,0.12);
+  --text:#e8f4ff;
+  --text-dim:rgba(232,244,255,0.5);
+  --blur:blur(24px);
+  --r:20px;
+  --nav-h:80px;
+}
+html,body{
+  height:100%;width:100%;
+  background:var(--deep);
+  color:var(--text);
+  font-family:'Outfit',sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══════════════════════════════════════════════
+   AMBIENT BACKGROUND
+═══════════════════════════════════════════════ */
+#ambient{
+  position:fixed;inset:0;z-index:0;
+  transition:all 2s ease;
+}
+.orb{
+  position:absolute;border-radius:50%;
+  filter:blur(80px);opacity:0.35;
+  animation:float 8s ease-in-out infinite;
+}
+.orb1{width:60vw;height:60vw;top:-10%;left:-15%;background:radial-gradient(circle,#1a4a8a,transparent)}
+.orb2{width:50vw;height:50vw;bottom:-5%;right:-10%;background:radial-gradient(circle,#0a2a5a,transparent);animation-delay:-3s}
+.orb3{width:40vw;height:40vw;top:30%;left:20%;background:radial-gradient(circle,#0d3a6a,transparent);animation-delay:-6s}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+
+/* Stars */
+#stars{position:fixed;inset:0;z-index:0;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:var(--o,0.6)}}
+
+/* ═══════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════ */
+#app{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column}
+
+/* ═══════════════════════════════════════════════
+   PAGES
+═══════════════════════════════════════════════ */
+#pages{flex:1;position:relative;overflow:hidden}
+.page{
+  position:absolute;inset:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:env(safe-area-inset-top,20px) 20px calc(var(--nav-h) + 20px);
+  opacity:0;pointer-events:none;
+  transform:translateX(30px);
+  transition:opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1);
+}
+.page.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.page::-webkit-scrollbar{display:none}
+
+/* ═══════════════════════════════════════════════
+   GLASS CARD
+═══════════════════════════════════════════════ */
+.card{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-radius:var(--r);
+  padding:22px;
+  margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.08) 0%,transparent 60%);
+  border-radius:inherit;pointer-events:none;
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+#nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:var(--nav-h);
+  background:rgba(5,10,24,0.7);
+  backdrop-filter:blur(40px);
+  -webkit-backdrop-filter:blur(40px);
+  border-top:1px solid var(--glass-border);
+  display:flex;align-items:center;justify-content:space-around;
+  padding-bottom:env(safe-area-inset-bottom,0);
+  z-index:100;
+}
+.nav-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text-dim);transition:all .3s ease;padding:8px 14px;
+  border-radius:14px;
+}
+.nav-btn.active{color:var(--ice);background:rgba(168,216,255,0.1)}
+.nav-btn svg{width:24px;height:24px;transition:transform .3s ease}
+.nav-btn.active svg{transform:scale(1.15)}
+.nav-btn span{font-family:'Outfit',sans-serif;font-size:10px;font-weight:500;letter-spacing:.5px}
+
+/* ═══════════════════════════════════════════════
+   PAGE 1 — WEATHER
+═══════════════════════════════════════════════ */
+#weather-bg{
+  position:fixed;inset:0;z-index:1;
+  transition:all 3s ease;opacity:0;
+}
+#weather-canvas{position:fixed;inset:0;z-index:2;pointer-events:none}
+
+.weather-main{text-align:center;padding:30px 0 20px}
+.weather-city{font-size:16px;font-weight:300;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.weather-temp{font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:1;color:var(--ice2);text-shadow:0 0 60px rgba(168,216,255,0.4)}
+.weather-desc{font-size:20px;font-weight:200;color:var(--text-dim);margin-top:4px;text-transform:capitalize}
+.weather-icon-big{font-size:70px;margin:10px 0;filter:drop-shadow(0 0 30px rgba(168,216,255,0.5));display:block}
+
+.weather-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.wstat{text-align:center}
+.wstat-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--ice)}
+.wstat-lbl{font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+.hourly-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin:-4px -4px 0}
+.hourly-scroll::-webkit-scrollbar{display:none}
+.hour-chip{
+  min-width:58px;background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:blur(12px);border-radius:30px;padding:12px 8px;
+  text-align:center;flex-shrink:0;
+}
+.hour-time{font-size:10px;color:var(--text-dim)}
+.hour-icon{font-size:20px;margin:4px 0}
+.hour-temp{font-size:13px;font-weight:500;color:var(--ice)}
+
+/* Search bar */
+.search-wrap{position:relative;margin-bottom:16px}
+.search-inp{
+  width:100%;background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:var(--blur);border-radius:30px;padding:14px 50px 14px 20px;
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;outline:none;
+}
+.search-inp::placeholder{color:var(--text-dim)}
+.search-btn{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:var(--blue);border:none;border-radius:50%;width:36px;height:36px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;
+}
+
+/* Refresh btn */
+.refresh-row{display:flex;justify-content:flex-end;margin-bottom:8px}
+.refresh-btn{
+  background:var(--glass);border:1px solid var(--glass-border);color:var(--ice);
+  border-radius:20px;padding:6px 14px;font-family:'Outfit',sans-serif;font-size:12px;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE 2 — CLOCK
+═══════════════════════════════════════════════ */
+#clock-wallpaper{
+  position:fixed;inset:0;z-index:1;
+  background-size:cover;background-position:center;
+  transition:opacity .5s;
+}
+#clock-wallpaper video,#clock-wallpaper img.wp-img{
+  width:100%;height:100%;object-fit:cover;
+}
+
+.clock-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:calc(env(safe-area-inset-top,20px) + 10px);
+  min-height:calc(100vh - var(--nav-h));
+}
+.clock-time{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:min(26vw,130px);
+  line-height:1;
+  color:#fff;
+  text-shadow:0 2px 40px rgba(0,0,0,0.6),0 0 80px rgba(168,216,255,0.2);
+  letter-spacing:4px;
+  animation:clockpulse 1s ease-in-out infinite;
+}
+@keyframes clockpulse{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0.7}51%{opacity:1}}
+.clock-seconds{
+  font-family:'Space Mono',monospace;font-size:48px;
+  color:rgba(255,255,255,0.5);letter-spacing:6px;margin-top:-8px;
+}
+.clock-date{
+  font-family:'Outfit',sans-serif;font-size:16px;font-weight:300;
+  color:rgba(255,255,255,0.6);letter-spacing:3px;text-transform:uppercase;
+  margin-top:10px;
+}
+
+.clock-controls{width:100%;padding:0 20px;margin-top:auto;padding-bottom:10px}
+.wp-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;
+}
+.wp-thumb{
+  aspect-ratio:9/16;border-radius:12px;overflow:hidden;position:relative;
+  border:2px solid transparent;cursor:pointer;transition:all .3s;
+  background:#111;
+}
+.wp-thumb.active{border-color:var(--ice);box-shadow:0 0 0 2px rgba(168,216,255,0.3)}
+.wp-thumb img,.wp-thumb video{width:100%;height:100%;object-fit:cover}
+.wp-thumb .wp-del{
+  position:absolute;top:4px;right:4px;
+  background:rgba(0,0,0,0.6);border:none;border-radius:50%;
+  width:20px;height:20px;color:#fff;font-size:12px;cursor:pointer;
+  display:none;align-items:center;justify-content:center;
+}
+.wp-thumb:hover .wp-del,.wp-thumb:active .wp-del{display:flex}
+
+.add-wp-btn{
+  width:100%;background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:var(--blur);border-radius:var(--r);
+  padding:16px;color:var(--ice);font-family:'Outfit',sans-serif;font-size:15px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:400;transition:all .3s;
+}
+.add-wp-btn:active{background:var(--glass-strong)}
+#wp-input{display:none}
+
+/* ═══════════════════════════════════════════════
+   PAGE 3 — CALENDAR
+═══════════════════════════════════════════════ */
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.cal-month{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--ice);letter-spacing:2px}
+.cal-year{font-size:14px;color:var(--text-dim);margin-top:-8px}
+.cal-nav{display:flex;gap:8px}
+.cal-nav-btn{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:50%;width:36px;height:36px;color:var(--ice);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .3s;
+}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-day-name{font-size:11px;color:var(--text-dim);padding:4px 0;letter-spacing:1px}
+.cal-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:14px;border-radius:50%;cursor:pointer;transition:all .25s;
+  position:relative;
+}
+.cal-day:hover{background:var(--glass)}
+.cal-day.today{background:var(--blue);color:#fff;font-weight:600}
+.cal-day.has-event::after{
+  content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--ice);
+}
+.cal-day.other-month{color:rgba(255,255,255,0.15)}
+
+/* Events */
+.event-title{font-size:16px;font-weight:500;color:var(--ice);margin-bottom:12px}
+.event-item{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.event-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.event-text{flex:1;font-size:14px}
+.event-time{font-size:12px;color:var(--text-dim)}
+
+.add-event-form{display:flex;gap:8px;margin-top:12px}
+.add-event-inp{
+  flex:1;background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:12px;padding:10px 14px;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:14px;outline:none;
+}
+.add-event-inp::placeholder{color:var(--text-dim)}
+.add-event-sub{
+  background:var(--blue);border:none;border-radius:12px;padding:10px 16px;
+  color:#fff;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE 4 — NOTES
+═══════════════════════════════════════════════ */
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.note-card{
+  background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:var(--blur);border-radius:16px;padding:16px;
+  position:relative;cursor:pointer;min-height:120px;
+  transition:transform .2s,box-shadow .2s;
+}
+.note-card:active{transform:scale(0.97)}
+.note-card.full-width{grid-column:1/-1}
+.note-color{
+  position:absolute;top:12px;right:12px;
+  width:10px;height:10px;border-radius:50%;
+}
+.note-body{font-size:13px;line-height:1.5;color:var(--text);margin-top:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
+.note-date{font-size:10px;color:var(--text-dim);margin-top:8px;letter-spacing:.5px}
+.note-del{
+  position:absolute;bottom:8px;right:10px;background:none;border:none;
+  color:var(--text-dim);cursor:pointer;font-size:16px;
+}
+
+/* Note editor */
+#note-editor{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(5,10,24,0.95);
+  backdrop-filter:blur(40px);
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top,40px) 20px 20px;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+}
+#note-editor.open{transform:translateY(0)}
+.editor-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.editor-close{background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;padding:8px 18px;color:var(--text);cursor:pointer;font-family:'Outfit',sans-serif}
+.editor-save{background:var(--blue);border:none;border-radius:20px;padding:8px 18px;color:#fff;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500}
+.editor-colors{display:flex;gap:8px;margin-bottom:12px}
+.ec{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.ec.sel{border-color:#fff;transform:scale(1.2)}
+#note-textarea{
+  flex:1;background:none;border:none;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:16px;line-height:1.7;
+  resize:none;outline:none;
+}
+#note-textarea::placeholder{color:var(--text-dim)}
+
+/* ═══════════════════════════════════════════════
+   PAGE 5 — BREATHE / MEDITATE
+═══════════════════════════════════════════════ */
+.breathe-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:20px;
+}
+.breathe-circle{
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(74,158,255,0.3),rgba(168,216,255,0.1));
+  border:1.5px solid rgba(168,216,255,0.3);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin:20px 0;
+}
+.breathe-inner{
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,216,255,0.2),transparent);
+  border:1px solid rgba(168,216,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-size:14px;color:var(--ice);
+  letter-spacing:1px;
+}
+.breathe-ring{
+  position:absolute;inset:-20px;border-radius:50%;
+  border:1px solid rgba(168,216,255,0.15);
+}
+.breathe-txt{font-size:26px;font-weight:200;color:var(--ice);letter-spacing:3px;text-transform:uppercase}
+.breathe-sub{font-size:13px;color:var(--text-dim);margin-top:6px;letter-spacing:1px}
+.breathe-start{
+  margin-top:24px;background:var(--glass);border:1px solid var(--glass-border);
+  backdrop-filter:var(--blur);border-radius:30px;padding:14px 40px;
+  color:var(--ice);cursor:pointer;font-family:'Outfit',sans-serif;font-size:16px;
+  transition:all .3s;
+}
+.breathe-start:active{background:var(--glass-strong)}
+
+@keyframes breathe-in{0%{transform:scale(1)}100%{transform:scale(1.5)}}
+@keyframes breathe-out{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+.breathe-circle.inhale{animation:breathe-in 4s ease-in-out forwards}
+.breathe-circle.exhale{animation:breathe-out 6s ease-in-out forwards}
+
+/* Breathe stats */
+.breathe-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;width:100%}
+.b-stat{text-align:center}
+.b-stat-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--ice)}
+.b-stat-lbl{font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast{
+  position:fixed;top:env(safe-area-inset-top,20px);left:50%;
+  transform:translate(-50%,-100px);
+  background:var(--glass-strong);border:1px solid var(--glass-border);
+  backdrop-filter:blur(30px);border-radius:30px;
+  padding:10px 20px;font-size:13px;color:var(--ice);
+  z-index:500;transition:transform .4s cubic-bezier(.4,0,.2,1);
+  white-space:nowrap;
+}
+#toast.show{transform:translate(-50%,0)}
+
+/* ═══════════════════════════════════════════════
+   LOADING
+═══════════════════════════════════════════════ */
+#loading{
+  position:fixed;inset:0;z-index:1000;
+  background:var(--deep);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;transition:opacity .6s;
+}
+.logo-txt{
+  font-family:'Bebas Neue',sans-serif;font-size:60px;
+  letter-spacing:12px;color:var(--ice);
+  text-shadow:0 0 40px rgba(168,216,255,0.5);
+  animation:logoGlow 2s ease-in-out infinite;
+}
+@keyframes logoGlow{0%,100%{text-shadow:0 0 40px rgba(168,216,255,0.3)}50%{text-shadow:0 0 80px rgba(168,216,255,0.8)}}
+.load-bar{width:120px;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+.load-fill{height:100%;background:linear-gradient(90deg,transparent,var(--ice),transparent);width:40%;animation:loadSlide 1.5s ease-in-out infinite}
+@keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+/* Header */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:4px}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:var(--ice)}
+
+/* Pill tag */
+.pill{
+  background:rgba(74,158,255,0.15);border:1px solid rgba(74,158,255,0.3);
+  border-radius:20px;padding:4px 12px;font-size:11px;color:var(--blue);letter-spacing:1px;
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="logo-txt">AURA</div>
+  <div class="load-bar"><div class="load-fill"></div></div>
+  <div style="font-size:12px;color:var(--text-dim);letter-spacing:2px">INITIALISATION</div>
+</div>
+
+<!-- AMBIENT BG -->
+<div id="ambient">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+<div id="stars"></div>
+
+<!-- WEATHER DYNAMIC BG -->
+<div id="weather-bg"></div>
+<canvas id="weather-canvas"></canvas>
+
+<!-- CLOCK WALLPAPER -->
+<div id="clock-wallpaper"></div>
+
+<!-- APP -->
+<div id="app">
+  <div id="pages">
+
+    <!-- PAGE 1: MÉTÉO -->
+    <div class="page active" id="page-weather">
+      <div class="search-wrap">
+        <input class="search-inp" id="city-inp" placeholder="Rechercher une ville…" type="text"/>
+        <button class="search-btn" onclick="searchCity()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </div>
+
+      <div class="weather-main">
+        <div class="weather-city" id="w-city">Localisation…</div>
+        <span class="weather-icon-big" id="w-icon">⛅</span>
+        <div class="weather-temp" id="w-temp">--°</div>
+        <div class="weather-desc" id="w-desc">Chargement…</div>
+      </div>
+
+      <div class="card">
+        <div class="weather-grid">
+          <div class="wstat"><div class="wstat-val" id="w-feel">--°</div><div class="wstat-lbl">Ressenti</div></div>
+          <div class="wstat"><div class="wstat-val" id="w-hum">--%</div><div class="wstat-lbl">Humidité</div></div>
+          <div class="wstat"><div class="wstat-val" id="w-wind">-- km/h</div><div class="wstat-lbl">Vent</div></div>
+          <div class="wstat"><div class="wstat-val" id="w-vis">-- km</div><div class="wstat-lbl">Visibilité</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Prévisions horaires</div>
+        <div class="hourly-scroll" id="hourly-list"></div>
+      </div>
+
+      <!-- API key prompt -->
+      <div class="card" id="api-notice" style="text-align:center">
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:10px">Pour la météo en temps réel, entrez votre clé OpenWeatherMap :</div>
+        <div style="display:flex;gap:8px">
+          <input id="api-key-inp" class="add-event-inp" placeholder="Clé API…" style="flex:1"/>
+          <button class="add-event-sub" onclick="saveApiKey()">OK</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px">Gratuit sur openweathermap.org</div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: HORLOGE -->
+    <div class="page" id="page-clock">
+      <div class="clock-wrap">
+        <div class="clock-time" id="clock-h">00:00</div>
+        <div class="clock-seconds" id="clock-s">00</div>
+        <div class="clock-date" id="clock-d">Lundi, 1 Janvier 2025</div>
+
+        <div style="flex:1"></div>
+
+        <div class="clock-controls">
+          <div class="card" style="padding:16px">
+            <div style="font-size:12px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Fonds d'écran</div>
+            <div class="wp-grid" id="wp-grid">
+              <!-- Default wallpapers -->
+              <div class="wp-thumb active" data-wp="aurora" onclick="setWallpaper(this,'aurora')">
+                <div style="width:100%;height:100%;background:linear-gradient(180deg,#0a1628 0%,#1a3a6a 50%,#0d2040 100%);display:flex;align-items:center;justify-content:center;font-size:24px">🌌</div>
+              </div>
+              <div class="wp-thumb" data-wp="sunset" onclick="setWallpaper(this,'sunset')">
+                <div style="width:100%;height:100%;background:linear-gradient(180deg,#1a0a2e 0%,#3a1a6a 40%,#6a2a3a 70%,#2a0a18 100%);display:flex;align-items:center;justify-content:center;font-size:24px">🌆</div>
+              </div>
+              <div class="wp-thumb" data-wp="ocean" onclick="setWallpaper(this,'ocean')">
+                <div style="width:100%;height:100%;background:linear-gradient(180deg,#050a18 0%,#0a2040 50%,#0d3060 100%);display:flex;align-items:center;justify-content:center;font-size:24px">🌊</div>
+              </div>
+            </div>
+            <input type="file" id="wp-input" accept="image/*,video/*" onchange="addWallpaper(this)"/>
+            <button class="add-wp-btn" onclick="document.getElementById('wp-input').click()">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              Ajouter une image ou vidéo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: CALENDRIER -->
+    <div class="page" id="page-cal">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="cal-title">JANVIER</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:-6px" id="cal-year-lbl">2025</div>
+        </div>
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+          <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="event-title">Événements — <span id="ev-date-lbl" style="color:var(--text-dim);font-size:13px;font-weight:300"></span></div>
+        <div id="events-list"></div>
+        <div class="add-event-form">
+          <input class="add-event-inp" id="ev-inp" placeholder="Nouvel événement…"/>
+          <button class="add-event-sub" onclick="addEvent()">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: NOTES -->
+    <div class="page" id="page-notes">
+      <div class="page-header">
+        <div class="page-title">NOTES</div>
+        <button class="pill" onclick="openNoteEditor()">+ Note</button>
+      </div>
+      <div class="notes-grid" id="notes-grid"></div>
+    </div>
+
+    <!-- PAGE 5: RESPIRATION -->
+    <div class="page" id="page-breathe">
+      <div class="page-header">
+        <div>
+          <div class="page-title">RESPIRER</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:-6px">Cohérence cardiaque</div>
+        </div>
+        <div class="pill" id="breathe-cycles-pill">0 cycles</div>
+      </div>
+
+      <div class="breathe-wrap">
+        <div class="breathe-circle" id="breathe-circle">
+          <div class="breathe-ring"></div>
+          <div class="breathe-inner">
+            <span id="breathe-inner-txt">Prêt</span>
+          </div>
+        </div>
+        <div class="breathe-txt" id="breathe-label">Respiration 4-7-8</div>
+        <div class="breathe-sub" id="breathe-sublabel">Inspirer 4s · Retenir 7s · Expirer 8s</div>
+
+        <button class="breathe-start" id="breathe-btn" onclick="toggleBreathe()">Commencer</button>
+
+        <div class="breathe-stats" style="width:calc(100% - 40px)">
+          <div class="b-stat"><div class="b-stat-val" id="b-cycles">0</div><div class="b-stat-lbl">Cycles</div></div>
+          <div class="b-stat"><div class="b-stat-val" id="b-mins">0</div><div class="b-stat-lbl">Minutes</div></div>
+          <div class="b-stat"><div class="b-stat-val" id="b-streak">0</div><div class="b-stat-lbl">Série jours</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- NAV -->
+  <nav id="nav">
+    <button class="nav-btn active" onclick="switchPage('weather',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+      <span>Météo</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('clock',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      <span>Horloge</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('cal',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Agenda</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('notes',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Notes</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('breathe',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 0 20 10 10 0 0 1 0-20"/><path d="M12 8v4l3 3"/></svg>
+      <span>Zen</span>
+    </button>
+  </nav>
+</div>
+
+<!-- NOTE EDITOR -->
+<div id="note-editor">
+  <div class="editor-toolbar">
+    <button class="editor-close" onclick="closeNoteEditor()">Annuler</button>
+    <div style="font-size:13px;color:var(--text-dim);letter-spacing:1px">NOTE</div>
+    <button class="editor-save" onclick="saveNote()">Enregistrer</button>
+  </div>
+  <div class="editor-colors">
+    <div class="ec sel" style="background:#4a9eff" data-color="#4a9eff" onclick="selectColor(this)"></div>
+    <div class="ec" style="background:#ff6b9d" data-color="#ff6b9d" onclick="selectColor(this)"></div>
+    <div class="ec" style="background:#52d98b" data-color="#52d98b" onclick="selectColor(this)"></div>
+    <div class="ec" style="background:#ffb347" data-color="#ffb347" onclick="selectColor(this)"></div>
+    <div class="ec" style="background:#b48aff" data-color="#b48aff" onclick="selectColor(this)"></div>
+    <div class="ec" style="background:#a8d8ff" data-color="#a8d8ff" onclick="selectColor(this)"></div>
+  </div>
+  <textarea id="note-textarea" placeholder="Commencez à écrire…"></textarea>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STARS
+// ═══════════════════════════════════════════════
+const starsEl=document.getElementById('stars');
+for(let i=0;i<120;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const size=Math.random()*2+1;
+  s.style.cssText=`
+    width:${size}px;height:${size}px;
+    top:${Math.random()*100}%;left:${Math.random()*100}%;
+    --d:${2+Math.random()*4}s;--o:${0.3+Math.random()*0.5};
+    animation-delay:${-Math.random()*4}s
+  `;
+  starsEl.appendChild(s);
+}
+
+// ═══════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const l=document.getElementById('loading');
+    l.style.opacity='0';
+    setTimeout(()=>l.style.display='none',600);
+    initAll();
+  },1800);
+});
+
+function initAll(){
+  initClock();
+  initCalendar();
+  loadNotes();
+  loadWeatherMock();
+  loadWallpapers();
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+let currentPage='weather';
+function switchPage(name,btn){
+  if(name===currentPage)return;
+  const old=document.getElementById('page-'+currentPage);
+  const nw=document.getElementById('page-'+name);
+  old.classList.remove('active');
+  nw.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage=name;
+
+  // Toggle backgrounds
+  document.getElementById('weather-bg').style.opacity=name==='weather'?'1':'0';
+  document.getElementById('weather-canvas').style.opacity=name==='weather'?'1':'0';
+  document.getElementById('clock-wallpaper').style.opacity=name==='clock'?'1':'0';
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ═══════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════
+const days=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const months=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+function initClock(){
+  setInterval(()=>{
+    const n=new Date();
+    const h=String(n.getHours()).padStart(2,'0');
+    const m=String(n.getMinutes()).padStart(2,'0');
+    const s=String(n.getSeconds()).padStart(2,'0');
+    document.getElementById('clock-h').textContent=h+':'+m;
+    document.getElementById('clock-s').textContent=s;
+    document.getElementById('clock-d').textContent=
+      days[n.getDay()]+', '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
+  },1000);
+}
+
+// ═══════════════════════════════════════════════
+// WALLPAPERS
+// ═══════════════════════════════════════════════
+let currentWP='aurora';
+const wpBGs={
+  aurora:'linear-gradient(180deg,#050a18 0%,#0a1e3a 30%,#0d2a5a 60%,#050a18 100%)',
+  sunset:'linear-gradient(180deg,#1a0a2e 0%,#3a1a5a 40%,#6a1a3a 70%,#1a0820 100%)',
+  ocean:'linear-gradient(180deg,#030810 0%,#061628 50%,#0a2040 100%)'
+};
+
+function loadWallpapers(){
+  const wps=JSON.parse(localStorage.getItem('aura-wallpapers')||'[]');
+  wps.forEach(wp=>addWpThumb(wp));
+  setWallpaperBg(currentWP);
+}
+
+function setWallpaper(el,key){
+  document.querySelectorAll('.wp-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentWP=key;
+  setWallpaperBg(key);
+}
+
+function setWallpaperBg(key){
+  const wl=document.getElementById('clock-wallpaper');
+  wl.innerHTML='';
+  if(wpBGs[key]){
+    wl.style.background=wpBGs[key];
+    return;
+  }
+  // custom
+  const wps=JSON.parse(localStorage.getItem('aura-wallpapers')||'[]');
+  const wp=wps.find(w=>w.id===key);
+  if(!wp)return;
+  if(wp.type==='video'){
+    const v=document.createElement('video');
+    v.src=wp.data;v.autoplay=true;v.loop=true;v.muted=true;v.playsInline=true;
+    wl.appendChild(v);wl.style.background='#000';
+  } else {
+    const img=document.createElement('img');
+    img.src=wp.data;img.className='wp-img';
+    wl.appendChild(img);wl.style.background='#000';
+  }
+}
+
+function addWallpaper(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const id='wp-'+Date.now();
+    const wp={id,type:file.type.startsWith('video')?'video':'image',data:e.target.result};
+    const wps=JSON.parse(localStorage.getItem('aura-wallpapers')||'[]');
+    wps.push(wp);localStorage.setItem('aura-wallpapers',JSON.stringify(wps));
+    addWpThumb(wp);
+    toast('Fond d\'écran ajouté ✓');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function addWpThumb(wp){
+  const grid=document.getElementById('wp-grid');
+  const div=document.createElement('div');
+  div.className='wp-thumb';div.dataset.wp=wp.id;
+  div.onclick=()=>setWallpaper(div,wp.id);
+  if(wp.type==='video'){
+    const v=document.createElement('video');
+    v.src=wp.data;v.muted=true;v.loop=true;v.autoplay=true;v.playsInline=true;
+    div.appendChild(v);
+  } else {
+    const img=document.createElement('img');img.src=wp.data;
+    div.appendChild(img);
+  }
+  const del=document.createElement('button');
+  del.className='wp-del';del.innerHTML='×';
+  del.onclick=ev=>{ev.stopPropagation();deleteWp(wp.id,div)};
+  div.appendChild(del);
+  grid.insertBefore(div,grid.lastElementChild);
+}
+
+function deleteWp(id,el){
+  const wps=JSON.parse(localStorage.getItem('aura-wallpapers')||'[]');
+  localStorage.setItem('aura-wallpapers',JSON.stringify(wps.filter(w=>w.id!==id)));
+  el.remove();
+  if(currentWP===id)setWallpaper(document.querySelector('.wp-thumb'),'aurora');
+  toast('Supprimé');
+}
+
+// ═══════════════════════════════════════════════
+// WEATHER
+// ═══════════════════════════════════════════════
+let apiKey='';
+const weatherConditions={
+  Clear:{icon:'☀️',bg:'linear-gradient(180deg,#1a3a6a 0%,#2a5a8a 50%,#1a2a5a 100%)',particles:'sunny'},
+  Clouds:{icon:'⛅',bg:'linear-gradient(180deg,#1a2a4a 0%,#2a3a5a 50%,#1a2040 100%)',particles:'cloudy'},
+  Rain:{icon:'🌧️',bg:'linear-gradient(180deg,#0a1428 0%,#0d1e3a 50%,#0a1020 100%)',particles:'rain'},
+  Drizzle:{icon:'🌦️',bg:'linear-gradient(180deg,#0d1a30 0%,#162440 100%)',particles:'rain'},
+  Thunderstorm:{icon:'⛈️',bg:'linear-gradient(180deg,#080c18 0%,#0d1020 100%)',particles:'storm'},
+  Snow:{icon:'❄️',bg:'linear-gradient(180deg,#0f1f35 0%,#1a2f45 50%,#0f1a2a 100%)',particles:'snow'},
+  Mist:{icon:'🌫️',bg:'linear-gradient(180deg,#0e1a2e 0%,#162238 100%)',particles:'fog'},
+  Haze:{icon:'🌫️',bg:'linear-gradient(180deg,#0e1a2e 0%,#162238 100%)',particles:'fog'},
+};
+
+let weatherCanvas,ctx,particles=[];
+
+function initWeatherCanvas(){
+  weatherCanvas=document.getElementById('weather-canvas');
+  ctx=weatherCanvas.getContext('2d');
+  resize();
+  window.addEventListener('resize',resize);
+  animateParticles();
+}
+
+function resize(){
+  weatherCanvas.width=window.innerWidth;
+  weatherCanvas.height=window.innerHeight;
+}
+
+let particleType='cloudy';
+function spawnParticles(type){
+  particleType=type;
+  particles=[];
+  const n=type==='rain'?120:type==='snow'?60:type==='storm'?80:type==='sunny'?30:20;
+  for(let i=0;i<n;i++) particles.push(newParticle(type,true));
+}
+
+function newParticle(type,init=false){
+  const h=window.innerHeight,w=window.innerWidth;
+  if(type==='rain'||type==='storm'){
+    return{x:Math.random()*w,y:init?Math.random()*h:-10,vx:-1,vy:15+Math.random()*10,alpha:0.3+Math.random()*0.4,len:10+Math.random()*20,type};
+  }
+  if(type==='snow'){
+    return{x:Math.random()*w,y:init?Math.random()*h:-10,vx:(Math.random()-0.5)*0.5,vy:0.5+Math.random()*1.5,r:1+Math.random()*3,alpha:0.4+Math.random()*0.4,type};
+  }
+  if(type==='sunny'){
+    return{x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*2,alpha:0,maxAlpha:0.2+Math.random()*0.4,fading:false,type};
+  }
+  return null;
+}
+
+function animateParticles(){
+  ctx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height);
+  particles.forEach((p,i)=>{
+    if(!p){return}
+    ctx.save();
+    if(p.type==='rain'||p.type==='storm'){
+      ctx.strokeStyle=`rgba(168,216,255,${p.alpha})`;
+      ctx.lineWidth=p.type==='storm'?1.5:1;
+      ctx.beginPath();
+      ctx.moveTo(p.x,p.y);
+      ctx.lineTo(p.x+p.vx*2,p.y+p.len);
+      ctx.stroke();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.type==='storm'&&Math.random()<0.002){
+        // lightning flash
+        ctx.fillStyle='rgba(200,230,255,0.05)';
+        ctx.fillRect(0,0,weatherCanvas.width,weatherCanvas.height);
+      }
+      if(p.y>weatherCanvas.height)particles[i]=newParticle(p.type);
+    } else if(p.type==='snow'){
+      ctx.fillStyle=`rgba(220,240,255,${p.alpha})`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+      p.x+=p.vx+Math.sin(Date.now()*0.001+i)*0.3;p.y+=p.vy;
+      if(p.y>weatherCanvas.height)particles[i]=newParticle(p.type);
+    } else if(p.type==='sunny'){
+      if(!p.fading){p.alpha=Math.min(p.maxAlpha,p.alpha+0.005)}else{p.alpha=Math.max(0,p.alpha-0.005)}
+      if(p.alpha>=p.maxAlpha)p.fading=true;
+      if(p.alpha<=0){p.fading=false;p.x=Math.random()*weatherCanvas.width;p.y=Math.random()*weatherCanvas.height}
+      ctx.fillStyle=`rgba(255,220,100,${p.alpha})`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  });
+  requestAnimationFrame(animateParticles);
+}
+
+function loadWeatherMock(){
+  initWeatherCanvas();
+  // Load mock weather data (Paris)
+  const mock={
+    city:'Paris',temp:14,feels:11,hum:72,wind:18,vis:10,
+    desc:'Nuages épars',cond:'Clouds',
+    hourly:[
+      {t:'14h',i:'⛅',c:14},{t:'15h',i:'☁️',c:13},{t:'16h',i:'🌦️',c:12},
+      {t:'17h',i:'🌧️',c:11},{t:'18h',i:'🌧️',c:11},{t:'19h',i:'⛅',c:10},
+      {t:'20h',i:'🌙',c:9},{t:'21h',i:'🌙',c:8}
+    ]
+  };
+  applyWeather(mock);
+  // Try real geolocation
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const k=localStorage.getItem('aura-owm-key');
+      if(k) fetchWeather(pos.coords.latitude,pos.coords.longitude,k);
+    });
+  }
+  const k=localStorage.getItem('aura-owm-key');
+  if(k){document.getElementById('api-notice').style.display='none';}
+  else{document.getElementById('api-key-inp').value=k||'';}
+}
+
+function applyWeather(data){
+  document.getElementById('w-city').textContent=data.city;
+  document.getElementById('w-temp').textContent=data.temp+'°';
+  document.getElementById('w-feel').textContent=data.feels+'°';
+  document.getElementById('w-hum').textContent=data.hum+'%';
+  document.getElementById('w-wind').textContent=data.wind+' km/h';
+  document.getElementById('w-vis').textContent=data.vis+' km';
+  document.getElementById('w-desc').textContent=data.desc;
+
+  const cond=weatherConditions[data.cond]||weatherConditions['Clouds'];
+  document.getElementById('w-icon').textContent=cond.icon;
+  document.getElementById('weather-bg').style.background=cond.bg;
+  document.getElementById('weather-bg').style.opacity='1';
+  spawnParticles(cond.particles);
+
+  // Update orbs based on weather
+  const o1=document.querySelector('.orb1');
+  const o2=document.querySelector('.orb2');
+  if(data.cond==='Rain'||data.cond==='Drizzle'){
+    o1.style.background='radial-gradient(circle,#0a2040,transparent)';
+    o2.style.background='radial-gradient(circle,#0d1a30,transparent)';
+  } else if(data.cond==='Clear'){
+    o1.style.background='radial-gradient(circle,#1a4a8a,transparent)';
+    o2.style.background='radial-gradient(circle,#0a3060,transparent)';
+  }
+
+  // Hourly
+  const list=document.getElementById('hourly-list');
+  list.innerHTML='';
+  (data.hourly||[]).forEach(h=>{
+    list.innerHTML+=`<div class="hour-chip">
+      <div class="hour-time">${h.t}</div>
+      <div class="hour-icon">${h.i}</div>
+      <div class="hour-temp">${h.c}°</div>
+    </div>`;
+  });
+}
+
+function saveApiKey(){
+  const k=document.getElementById('api-key-inp').value.trim();
+  if(!k)return;
+  localStorage.setItem('aura-owm-key',k);
+  document.getElementById('api-notice').style.display='none';
+  toast('Clé API enregistrée ✓');
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>fetchWeather(pos.coords.latitude,pos.coords.longitude,k));
+  } else {
+    fetchWeatherByCity('Paris',k);
+  }
+}
+
+function searchCity(){
+  const city=document.getElementById('city-inp').value.trim();
+  if(!city)return;
+  const k=localStorage.getItem('aura-owm-key');
+  if(!k){toast('Entrez une clé API d\'abord');document.getElementById('api-notice').style.display='block';return;}
+  fetchWeatherByCity(city,k);
+}
+
+async function fetchWeather(lat,lon,key){
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${key}&units=metric&lang=fr`);
+    const d=await r.json();
+    if(d.cod!==200)return;
+    processOWMData(d);
+  }catch(e){console.log(e)}
+}
+
+async function fetchWeatherByCity(city,key){
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${key}&units=metric&lang=fr`);
+    const d=await r.json();
+    if(d.cod!==200){toast('Ville introuvable');return;}
+    processOWMData(d);
+    document.getElementById('city-inp').value='';
+  }catch(e){console.log(e);toast('Erreur réseau')}
+}
+
+function processOWMData(d){
+  const data={
+    city:d.name+', '+d.sys.country,
+    temp:Math.round(d.main.temp),
+    feels:Math.round(d.main.feels_like),
+    hum:d.main.humidity,
+    wind:Math.round(d.wind.speed*3.6),
+    vis:Math.round((d.visibility||10000)/1000),
+    desc:d.weather[0].description,
+    cond:d.weather[0].main,
+    hourly:[]
+  };
+  applyWeather(data);
+  toast('Météo mise à jour ✓');
+}
+
+// ═══════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════
+let calDate=new Date();
+let selectedDate=new Date();
+let events=JSON.parse(localStorage.getItem('aura-events')||'{}');
+
+function initCalendar(){
+  renderCal();
+  renderEvents();
+}
+
+function calNav(dir){
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()+dir,1);
+  renderCal();
+}
+
+function renderCal(){
+  const monthNames=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('cal-title').textContent=monthNames[calDate.getMonth()].toUpperCase();
+  document.getElementById('cal-year-lbl').textContent=calDate.getFullYear();
+
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  ['LU','MA','ME','JE','VE','SA','DI'].forEach(d=>{
+    const el=document.createElement('div');el.className='cal-day-name';el.textContent=d;grid.appendChild(el);
+  });
+
+  const first=new Date(calDate.getFullYear(),calDate.getMonth(),1);
+  const last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);
+  const today=new Date();
+  let startDay=(first.getDay()+6)%7;
+
+  for(let i=0;i<startDay;i++){
+    const prevDay=new Date(calDate.getFullYear(),calDate.getMonth(),-(startDay-i-1));
+    addDayEl(grid,prevDay,true);
+  }
+  for(let d=1;d<=last.getDate();d++){
+    const day=new Date(calDate.getFullYear(),calDate.getMonth(),d);
+    addDayEl(grid,day,false);
+  }
+  const remaining=(7-((startDay+last.getDate())%7))%7;
+  for(let i=1;i<=remaining;i++){
+    const nextDay=new Date(calDate.getFullYear(),calDate.getMonth()+1,i);
+    addDayEl(grid,nextDay,true);
+  }
+}
+
+function addDayEl(grid,day,other){
+  const el=document.createElement('div');el.className='cal-day';
+  if(other)el.classList.add('other-month');
+  const today=new Date();
+  if(day.toDateString()===today.toDateString())el.classList.add('today');
+  if(day.toDateString()===selectedDate.toDateString()&&!day.toDateString()===today.toDateString())
+    el.style.background='rgba(168,216,255,0.15)';
+  const key=day.toDateString();
+  if(events[key]&&events[key].length)el.classList.add('has-event');
+  el.textContent=day.getDate();
+  el.onclick=()=>{selectedDate=day;renderEvents();renderCal()};
+  grid.appendChild(el);
+}
+
+function renderEvents(){
+  const key=selectedDate.toDateString();
+  document.getElementById('ev-date-lbl').textContent=key;
+  const list=document.getElementById('events-list');list.innerHTML='';
+  const evs=events[key]||[];
+  if(!evs.length){list.innerHTML='<div style="font-size:13px;color:var(--text-dim);padding:8px 0">Aucun événement</div>';return;}
+  evs.forEach((e,i)=>{
+    list.innerHTML+=`<div class="event-item">
+      <div class="event-dot"></div>
+      <div class="event-text">${e.text}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="event-time">${e.time}</div>
+        <button onclick="delEvent('${key}',${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px">×</button>
+      </div>
+    </div>`;
+  });
+}
+
+function addEvent(){
+  const inp=document.getElementById('ev-inp');
+  const text=inp.value.trim();if(!text)return;
+  const key=selectedDate.toDateString();
+  if(!events[key])events[key]=[];
+  const now=new Date();
+  events[key].push({text,time:now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')});
+  localStorage.setItem('aura-events',JSON.stringify(events));
+  inp.value='';renderEvents();renderCal();
+  toast('Événement ajouté ✓');
+}
+
+function delEvent(key,i){
+  events[key].splice(i,1);
+  localStorage.setItem('aura-events',JSON.stringify(events));
+  renderEvents();renderCal();
+}
+
+// ═══════════════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════════════
+let notes=[];
+let editingNote=null;
+let currentColor='#4a9eff';
+
+function loadNotes(){
+  notes=JSON.parse(localStorage.getItem('aura-notes')||'[]');
+  renderNotes();
+}
+
+function renderNotes(){
+  const grid=document.getElementById('notes-grid');grid.innerHTML='';
+  if(!notes.length){
+    grid.innerHTML='<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:14px">Aucune note. Appuyez sur + Note</div>';
+    return;
+  }
+  notes.forEach((n,i)=>{
+    const el=document.createElement('div');
+    el.className='note-card'+(n.body.length>100?' full-width':'');
+    el.innerHTML=`
+      <div class="note-color" style="background:${n.color}"></div>
+      <div class="note-body">${n.body.replace(/\n/g,'<br>')}</div>
+      <div class="note-date">${n.date}</div>
+      <button class="note-del" onclick="event.stopPropagation();deleteNote(${i})">🗑</button>
+    `;
+    el.style.borderColor='rgba('+hexToRgb(n.color)+',0.3)';
+    el.onclick=()=>openNoteEditor(i);
+    grid.appendChild(el);
+  });
+}
+
+function openNoteEditor(idx){
+  editingNote=idx!==undefined?idx:null;
+  const note=editingNote!==null?notes[editingNote]:null;
+  document.getElementById('note-textarea').value=note?note.body:'';
+  currentColor=note?note.color:'#4a9eff';
+  document.querySelectorAll('.ec').forEach(e=>e.classList.toggle('sel',e.dataset.color===currentColor));
+  document.getElementById('note-editor').classList.add('open');
+}
+
+function closeNoteEditor(){document.getElementById('note-editor').classList.remove('open')}
+
+function saveNote(){
+  const body=document.getElementById('note-textarea').value.trim();
+  if(!body){closeNoteEditor();return;}
+  const note={body,color:currentColor,date:new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})};
+  if(editingNote!==null)notes[editingNote]=note;
+  else notes.unshift(note);
+  localStorage.setItem('aura-notes',JSON.stringify(notes));
+  renderNotes();closeNoteEditor();
+  toast('Note enregistrée ✓');
+}
+
+function deleteNote(i){
+  notes.splice(i,1);
+  localStorage.setItem('aura-notes',JSON.stringify(notes));
+  renderNotes();toast('Note supprimée');
+}
+
+function selectColor(el){
+  currentColor=el.dataset.color;
+  document.querySelectorAll('.ec').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`${r},${g},${b}`;
+}
+
+// ═══════════════════════════════════════════════
+// BREATHING
+// ═══════════════════════════════════════════════
+let breatheRunning=false,breatheInterval=null,breatheCycles=0,breatheStart=null;
+let breatheStreak=parseInt(localStorage.getItem('aura-bstreak')||'0');
+document.getElementById('b-streak').textContent=breatheStreak;
+
+const breathePhases=[
+  {label:'Inspirez',sub:'Inspirez lentement',dur:4000,phase:'inhale'},
+  {label:'Retenez',sub:'Retenez votre souffle',dur:7000,phase:''},
+  {label:'Expirez',sub:'Expirez lentement',dur:8000,phase:'exhale'},
+];
+
+let bPhaseIdx=0;
+
+function toggleBreathe(){
+  if(breatheRunning){
+    stopBreathe();
+  } else {
+    startBreathe();
+  }
+}
+
+function startBreathe(){
+  breatheRunning=true;
+  breatheStart=Date.now();
+  document.getElementById('breathe-btn').textContent='Arrêter';
+  runBreathePhase();
+  breatheInterval=setInterval(()=>{
+    const mins=Math.round((Date.now()-breatheStart)/60000);
+    document.getElementById('b-mins').textContent=mins;
+  },1000);
+  // Update streak
+  const today=new Date().toDateString();
+  const lastDay=localStorage.getItem('aura-blast');
+  if(lastDay!==today){
+    breatheStreak++;localStorage.setItem('aura-bstreak',breatheStreak);
+    localStorage.setItem('aura-blast',today);
+    document.getElementById('b-streak').textContent=breatheStreak;
+  }
+}
+
+function stopBreathe(){
+  breatheRunning=false;
+  clearInterval(breatheInterval);
+  document.getElementById('breathe-btn').textContent='Commencer';
+  document.getElementById('breathe-label').textContent='Respiration 4-7-8';
+  document.getElementById('breathe-sublabel').textContent='Inspirez 4s · Retenez 7s · Expirez 8s';
+  document.getElementById('breathe-inner-txt').textContent='Prêt';
+  const c=document.getElementById('breathe-circle');
+  c.classList.remove('inhale','exhale');
+  bPhaseIdx=0;
+}
+
+function runBreathePhase(){
+  if(!breatheRunning)return;
+  const phase=breathePhases[bPhaseIdx%3];
+  document.getElementById('breathe-label').textContent=phase.label;
+  document.getElementById('breathe-sublabel').textContent=phase.sub;
+  const c=document.getElementById('breathe-circle');
+  c.classList.remove('inhale','exhale');
+  if(phase.phase)setTimeout(()=>c.classList.add(phase.phase),50);
+
+  let rem=phase.dur/1000;
+  document.getElementById('breathe-inner-txt').textContent=rem;
+  const countdown=setInterval(()=>{rem--;document.getElementById('breathe-inner-txt').textContent=rem||''},1000);
+
+  setTimeout(()=>{
+    clearInterval(countdown);
+    bPhaseIdx++;
+    if(bPhaseIdx%3===0){
+      breatheCycles++;
+      document.getElementById('b-cycles').textContent=breatheCycles;
+      document.getElementById('breathe-cycles-pill').textContent=breatheCycles+' cycles';
+    }
+    runBreathePhase();
+  },phase.dur);
+}
+
+// ═══════════════════════════════════════════════
+// ENTER KEY BINDINGS
+// ═══════════════════════════════════════════════
+document.getElementById('city-inp').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity()});
+document.getElementById('ev-inp').addEventListener('keydown',e=>{if(e.key==='Enter')addEvent()});
+</script>
+</body>
+</html>
